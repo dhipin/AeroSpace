@@ -14,6 +14,8 @@ done
 
 ./script/install-dep.sh --bundler
 
+asciidoctor_args=(-r "$PWD/script/pygments-fix-path-with-spaces.rb")
+
 rm -rf .site && mkdir .site
 rm -rf .man && mkdir .man
 
@@ -33,6 +35,7 @@ build-site() {
         # Delete "aerospace " prefifx in synopsis
         sed -E -i '' '/tag::synopsis/, /end::synopsis/ s/^(aerospace | {10})//' aerospace*
         bundler exec asciidoctor \
+            "${asciidoctor_args[@]}" \
             "${adoc_site_args[@]}" \
             ./guide.adoc \
             ./commands.adoc \
@@ -50,7 +53,7 @@ build-site() {
 build-man() {
     cp-docs .man
     cd .man
-        bundler exec asciidoctor -b manpage aerospace*.adoc
+        bundler exec asciidoctor "${asciidoctor_args[@]}" -b manpage aerospace*.adoc
 
         # Comment by AI:
         #   gman (the g Dai client) renders bare .~ and /~ as ligatures (~ becomes ˜).
