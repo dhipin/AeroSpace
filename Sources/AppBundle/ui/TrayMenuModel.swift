@@ -35,10 +35,10 @@ enum AxPermissionStatus: Equatable {
         }
         .joined(separator: " │ ")
     TrayMenuModel.shared.workspaces = Workspace.all.map {
-        let apps = $0.allLeafWindowsRecursive.map { $0.app.name?.takeIf { !$0.isEmpty } }.filterNotNil().toSet()
+        let apps = $0.allLeafWindowsRecursive.map(\.trayMenuLabel).filterNotNil().toSet()
         let dash = " - "
         let suffix = switch true {
-            case !apps.isEmpty: dash + apps.sorted().joinTruncating(separator: ", ", length: 25)
+            case !apps.isEmpty: dash + apps.sorted().joinTruncating(separator: ", ", length: 60)
             case $0.isVisible: dash + $0.workspaceMonitor.name
             default: ""
         }
@@ -68,6 +68,38 @@ enum AxPermissionStatus: Equatable {
         items.insert(mode, at: 0)
     }
     TrayMenuModel.shared.trayItems = items
+}
+
+/// Editors whose window title ends with the project (workspace folder) name, e.g. "README.md — Nija"
+private let projectTitleBundleIds: Set<String> = [
+    "com.microsoft.VSCode",
+    "com.microsoft.VSCodeInsiders",
+    "com.vscodium",
+    "com.todesktop.230313mzl4w4u92", // Cursor
+    "com.google.antigravity-ide",
+]
+
+/// Window titles of `projectTitleBundleIds` windows. Titles are only available asynchronously,
+/// while `updateTrayText` is synchronous, so they are prefetched by `refreshTrayWindowTitles`
+@MainActor private var trayWindowTitles: [UInt32: String] = [:]
+
+@MainActor func refreshTrayWindowTitles() async throws {
+    var titles: [UInt32: String] = [:]
+    for window in Workspace.all.flatMap(\.allLeafWindowsRecursive) {
+        guard let bundleId = window.app.rawAppBundleId, projectTitleBundleIds.contains(bundleId) else { continue }
+        titles[window.windowId] = try await window.getTitle(.cancellable)
+    }
+    trayWindowTitles = titles
+}
+
+extension Window {
+    /// Project name for editor windows, app name for everything else
+    @MainActor var trayMenuLabel: String? {
+        let project = trayWindowTitles[windowId]?
+            .components(separatedBy: " — ").last?
+            .trimmingCharacters(in: .whitespaces)
+        return project?.takeIf { !$0.isEmpty } ?? app.name?.takeIf { !$0.isEmpty }
+    }
 }
 
 struct WorkspaceViewModel: Hashable {

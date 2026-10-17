@@ -42,6 +42,7 @@ func runHeavyCompleteRefreshSession(
             try await refresh()
             gcMonitors()
 
+            try await refreshTrayWindowTitles()
             updateTrayText()
             SecureInputPanel.shared.refresh()
             try await normalizeLayoutReason()
