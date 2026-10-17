@@ -14,8 +14,10 @@ set -u
 set -o pipefail
 cd "$(dirname "$0")"
 
-if test -x /opt/homebrew/bin/brew; then
-    PATH="/opt/homebrew/bin:$PATH"
+# Append, not prepend: a version manager (rbenv) earlier on PATH must keep precedence over
+# Homebrew's ruby/bundle, because Gemfile pins ruby ~> 3.0
+if test -x /opt/homebrew/bin/brew && ! grep -q '/opt/homebrew/bin' <<< "$PATH"; then
+    PATH="$PATH:/opt/homebrew/bin"
 fi
 if brew --prefix rustup &> /dev/null; then
     PATH="$(brew --prefix rustup)/bin:$PATH"
