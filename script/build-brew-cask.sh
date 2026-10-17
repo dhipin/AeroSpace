@@ -26,7 +26,7 @@ esac
 zip_file=''
 if test -f "$zip_uri"; then
     zip_file=$zip_uri
-    zip_uri="file://$(realpath "$zip_file")"
+    zip_uri="file://$(realpath "$zip_file" | sed "s/ /%20/g")" # brew rejects URIs with raw spaces
 elif grep -q '^http' <<< "$zip_uri"; then
     zip_file=/tmp/AeroSpace-tmp.zip
     rm -rf $zip_file
