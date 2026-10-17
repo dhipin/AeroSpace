@@ -9,7 +9,7 @@ include::util/man-attributes.adoc[]
 == Synopsis
 [verse]
 // tag::synopsis[]
-aerospace flatten-workspace-tree [-h|--help] [--workspace <workspace>]
+aerospace flatten-workspace-tree [-h|--help] [--workspace <workspace>] [--sort-by-window-id]
 
 // end::synopsis[]
 
@@ -28,6 +28,11 @@ include::./util/conditional-options-header.adoc[]
 
 --workspace <workspace>::
 include::./util/workspace-flag-desc.adoc[]
+
+--sort-by-window-id::
+Order the flattened windows by their window ID instead of keeping the tree order.
+Window IDs grow with window creation, so the result is a stable order that doesn't depend on the previous layout or on focus.
+Useful for scripts that build a layout with `--window-id` commands right after flattening.
 
 // end::body[]
 

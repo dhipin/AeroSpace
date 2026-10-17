@@ -22,4 +22,22 @@ final class FlattenWorkspaceTreeCommandTest: XCTestCase {
         workspace.normalizeContainers()
         assertEquals(workspace.layoutDescription, .workspace([.h_tiles([.window(1), .window(2)]), .floatingWindowsContainer([.window(3)])]))
     }
+
+    func testSortByWindowId() async {
+        let workspace = Workspace.get(byName: name).apply {
+            $0.rootTilingContainer.apply {
+                TestWindow.new(id: 3, parent: $0)
+                TilingContainer.newVTiles(parent: $0, adaptiveWeight: 1).apply {
+                    TestWindow.new(id: 1, parent: $0)
+                    TestWindow.new(id: 4, parent: $0)
+                }
+                TestWindow.new(id: 2, parent: $0)
+            }
+        }
+        assertEquals(workspace.focusWorkspace(), true)
+
+        await parseCommand("flatten-workspace-tree --sort-by-window-id").cmdOrDie.run(.defaultEnv, .emptyStdin)
+        workspace.normalizeContainers()
+        assertEquals(workspace.layoutDescription, .workspace([.h_tiles([.window(1), .window(2), .window(3), .window(4)])]))
+    }
 }

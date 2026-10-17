@@ -6,7 +6,10 @@ public struct FlattenWorkspaceTreeCmdArgs: CmdArgs {
         help: flatten_workspace_tree_help_generated,
         flags: [
             "--workspace": workspaceSubArgParser(),
+            "--sort-by-window-id": trueBoolFlag(\.sortByWindowId),
         ],
         posArgs: [],
     )
+
+    public var sortByWindowId: Bool = false
 }
